@@ -31,7 +31,7 @@ Importante: una instancia Free se **pausa sola tras 72 horas sin uso**. Antes de
 ## 2. Instalar
 
 ```bash
-git clone https://github.com/<tu-usuario>/aprendegraph.git
+git clone https://github.com/RodriLlanos2004/aprendegraph.git
 cd aprendegraph
 python -m venv .venv
 # Windows
