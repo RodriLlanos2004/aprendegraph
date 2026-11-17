@@ -109,4 +109,5 @@ docs/                 documentación PDF
 
 - **"No se pudo contactar a ..."**: la instancia está pausada o la URI está mal. Reanúdala en la consola de Aura.
 - **"Usuario o contraseña de Neo4j incorrectos"**: revisa el `.env`; la contraseña es la del archivo descargado de Aura.
+- **`CERTIFICATE_VERIFY_FAILED` al conectar**: el modo por defecto de `neo4j+s://` no reconoce la cadena del certificado de Aura en ese equipo. `app/database.py` ya lo resuelve: conecta con `encrypted=True` y `TrustSystemCAs()`, que valida el certificado con las autoridades del sistema operativo (sigue cifrado y verificado).
 - **Aviso "NEO4J_URI apunta a localhost"**: estás usando una base local; para la evaluación debe ser la URI `neo4j+s://` de Aura.

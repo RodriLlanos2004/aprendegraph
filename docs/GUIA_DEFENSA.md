@@ -29,6 +29,9 @@ Redis es excelente para buscar por clave exacta o para datos con expiración, pe
 **¿Cómo se conecta la app con la nube?**
 Con el driver oficial `neo4j` de Python, por el protocolo Bolt sobre TLS (`neo4j+s://`). Se crea un único driver al arrancar (tiene un pool de conexiones) y se cierra al apagar el servidor.
 
+**¿La conexión va cifrada? ¿Por qué `TrustSystemCAs`?**
+Sí. Bolt viaja sobre TLS y el driver verifica el certificado del servidor y el nombre del host. En mi equipo el modo por defecto de `neo4j+s://` rechazaba la cadena del certificado de Aura (emitido por SSL.com), así que lo configuré explícito: `encrypted=True` con `TrustSystemCAs()`, que valida contra los certificados de confianza del sistema operativo. No se desactivó ninguna verificación.
+
 **¿Dónde están las credenciales?**
 En variables de entorno cargadas desde `.env`, que está en `.gitignore`. El repositorio solo trae `.env.example`.
 
