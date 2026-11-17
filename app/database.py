@@ -10,12 +10,27 @@ nube, donde una conexión puede cortarse entre una petición y otra.
 import logging
 from typing import Any
 
-from neo4j import Driver, GraphDatabase, RoutingControl
+from neo4j import Driver, GraphDatabase, RoutingControl, TrustSystemCAs
 from neo4j.exceptions import AuthError, ServiceUnavailable
 
 from app.config import Settings
 
 log = logging.getLogger("aprendegraph.db")
+
+
+def _uri_y_cifrado(uri: str) -> tuple[str, dict[str, Any]]:
+    """Separa el esquema "+s" en opciones explícitas de cifrado.
+
+    neo4j+s:// y neo4j:// con encrypted=True y TrustSystemCAs hacen lo mismo
+    (TLS con verificación del certificado y del host). La forma explícita usa
+    el almacén de certificados del sistema operativo, que en algunos equipos
+    Windows reconoce cadenas (como la de SSL.com que usa Aura) que el modo
+    por defecto rechaza.
+    """
+    for seguro, plano in (("neo4j+s://", "neo4j://"), ("bolt+s://", "bolt://")):
+        if uri.startswith(seguro):
+            return plano + uri[len(seguro):], {"encrypted": True, "trusted_certificates": TrustSystemCAs()}
+    return uri, {}
 
 
 class BaseDatosNoDisponible(RuntimeError):
@@ -34,9 +49,11 @@ class Neo4jClient:
         s = self.settings
         if not s.es_nube:
             log.warning("NEO4J_URI apunta a %s: la evaluación exige una instancia en la nube.", s.host)
+        uri, cifrado = _uri_y_cifrado(s.uri)
         self._driver = GraphDatabase.driver(
-            s.uri,
+            uri,
             auth=(s.usuario, s.password),
+            **cifrado,
             max_connection_lifetime=300,   # AuraDB cierra conexiones inactivas; se renuevan antes
             connection_acquisition_timeout=30,
         )
