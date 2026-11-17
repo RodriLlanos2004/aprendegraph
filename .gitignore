@@ -1,0 +1,9 @@
+# Credenciales: nunca subir al repositorio
+.env
+Neo4j-*.txt
+
+.venv/
+__pycache__/
+*.pyc
+.idea/
+.vscode/

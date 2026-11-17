@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AprendeGraph</title>
+  <link rel="stylesheet" href="/static/styles.css?v=2">
+  <script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+</head>
+<body>
+<header>
+  <div class="marca"><span class="logo">◆</span> AprendeGraph <small>recomendador de cursos sobre grafos</small></div>
+  <div id="estado" class="estado">Conectando…</div>
+</header>
+
+<nav>
+  <button class="tab activa" data-tab="estudiantes">Estudiantes</button>
+  <button class="tab" data-tab="cursos">Cursos</button>
+  <button class="tab" data-tab="recomendaciones">Recomendaciones</button>
+  <button class="tab" data-tab="ruta">Ruta de aprendizaje</button>
+  <button class="tab" data-tab="conexion">Conexión entre estudiantes</button>
+</nav>
+
+<main>
+  <!-- ESTUDIANTES -->
+  <section id="estudiantes" class="panel activo">
+    <div class="columnas">
+      <div class="tarjeta ancha">
+        <h2>Estudiantes</h2>
+        <table id="tabla-estudiantes"><thead><tr><th>Id</th><th>Nombre</th><th>Email</th><th>Carrera</th><th>Cursos</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="tarjeta">
+        <h2 id="titulo-form-est">Nuevo estudiante</h2>
+        <form id="form-est">
+          <input type="hidden" name="id">
+          <label>Nombre<input name="nombre" required minlength="3"></label>
+          <label>Email<input name="email" type="email" required></label>
+          <label>Carrera<input name="carrera" required></label>
+          <label>Intereses<select name="intereses" multiple size="5"></select></label>
+          <div class="botones"><button type="submit" class="primario">Guardar</button><button type="button" id="cancelar-est">Limpiar</button></div>
+        </form>
+        <div id="detalle-est" class="detalle"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CURSOS -->
+  <section id="cursos" class="panel">
+    <div class="columnas">
+      <div class="tarjeta ancha">
+        <h2>Catálogo de cursos</h2>
+        <table id="tabla-cursos"><thead><tr><th>Id</th><th>Título</th><th>Nivel</th><th>Temas</th><th>Requiere</th><th>Inscritos</th><th>★</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="tarjeta">
+        <h2 id="titulo-form-cur">Nuevo curso</h2>
+        <form id="form-cur">
+          <input type="hidden" name="id">
+          <label>Título<input name="titulo" required minlength="3"></label>
+          <div class="fila">
+            <label>Nivel<select name="nivel"><option>Básico</option><option>Intermedio</option><option>Avanzado</option></select></label>
+            <label>Horas<input name="horas" type="number" min="1" max="300" value="20" required></label>
+          </div>
+          <label>Descripción<input name="descripcion"></label>
+          <label>Temas<select name="temas" multiple size="4" required></select></label>
+          <label>Instructor<select name="instructor_id"><option value="">(sin asignar)</option></select></label>
+          <label>Prerrequisitos<select name="requiere" multiple size="4"></select></label>
+          <div class="botones"><button type="submit" class="primario">Guardar</button><button type="button" id="cancelar-cur">Limpiar</button></div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMENDACIONES -->
+  <section id="recomendaciones" class="panel">
+    <div class="tarjeta">
+      <div class="fila">
+        <label>Estudiante<select id="rec-estudiante" class="sel-est"></select></label>
+        <label>Inscribir en curso<select id="rec-curso" class="sel-cur"></select></label>
+        <button id="btn-inscribir" class="primario">Inscribir</button>
+      </div>
+      <div id="rec-mensaje" class="mensaje"></div>
+    </div>
+    <div class="columnas tres">
+      <div class="tarjeta"><h3>Quienes tomaron tus cursos también tomaron</h3><p class="nota">Filtrado colaborativo (3 saltos)</p><ol id="rec-colab"></ol></div>
+      <div class="tarjeta"><h3>Por tus temas</h3><p class="nota">Basado en contenido (Tema compartido)</p><ol id="rec-contenido"></ol></div>
+      <div class="tarjeta"><h3>Compañeros afines</h3><p class="nota">Vecindad + similitud de Jaccard</p><ol id="rec-afines"></ol></div>
+    </div>
+    <div class="columnas">
+      <div class="tarjeta ancha"><h3>Vecindad del estudiante en el grafo</h3><div id="grafo"></div></div>
+      <div class="tarjeta"><h3>Sus inscripciones</h3><div id="rec-inscripciones"></div></div>
+    </div>
+  </section>
+
+  <!-- RUTA -->
+  <section id="ruta" class="panel">
+    <div class="tarjeta">
+      <div class="fila">
+        <label>Estudiante<select id="ruta-estudiante" class="sel-est"></select></label>
+        <label>Curso meta<select id="ruta-curso" class="sel-cur"></select></label>
+        <button id="btn-ruta" class="primario">Trazar ruta</button>
+      </div>
+      <p class="nota">Recorre todos los prerrequisitos directos e indirectos con un patrón de longitud variable <code>-[:REQUIERE*1..]-&gt;</code>.</p>
+      <div id="ruta-resultado"></div>
+    </div>
+  </section>
+
+  <!-- CONEXION -->
+  <section id="conexion" class="panel">
+    <div class="tarjeta">
+      <div class="fila">
+        <label>Desde<select id="con-origen" class="sel-est"></select></label>
+        <label>Hasta<select id="con-destino" class="sel-est"></select></label>
+        <button id="btn-conexion" class="primario">Buscar camino más corto</button>
+      </div>
+      <p class="nota">Grados de separación a través de cursos compartidos con <code>shortestPath()</code>.</p>
+      <div id="con-resultado"></div>
+    </div>
+  </section>
+</main>
+
+<div id="toast"></div>
+<script src="/static/app.js?v=2"></script>
+</body>
+</html>
